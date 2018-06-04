@@ -29,7 +29,14 @@ public class CommentController {
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void create(@RequestBody Comment comment) {
 		try {
-			commentRepository.save(comment);
+			Comment cmt = new Comment(
+				comment.getTitle(),
+				comment.getText(),
+				comment.getRating(),
+				comment.getUserId(),
+				comment.getApartmentId()
+			);
+			commentRepository.save(cmt);
 			logger.debug("Create comment with id - " + comment.getId().toString());
 		}
 		catch(MongoException ex) {
@@ -52,7 +59,16 @@ public class CommentController {
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void update(@RequestBody Comment comment) {
 		try {
-			commentRepository.save(comment);
+			Comment cmt = new Comment(
+					comment.getId(),
+					comment.getTitle(),
+					comment.getText(),
+					comment.getRating(),
+					comment.getUserId(),
+					comment.getApartmentId(),
+					comment.getDateCreation()
+				);
+			commentRepository.save(cmt);
 			logger.debug("Update comment with id - " + comment.getId().toString());
 		}
 		catch(MongoException ex) {
