@@ -17,23 +17,20 @@ public class Comment {
     private ObjectId userId;
     private ObjectId apartmentId;
     
-    private String dateCreation;
-    private String dateModify;
-    
-    public Comment() {}
+    private Date dateCreation;
+    private Date dateModify;
 
 	public Comment(String title, String text,
 				   Integer rating, String userId,
-				   String apartmentId, String dateCreation,
-				   String dateModify) {
+				   String apartmentId) {
 		this.id = new ObjectId();
 		this.title = title;
 		this.text = text;
 		this.rating = rating;
-		this.userId = new ObjectId();
-		this.apartmentId = new ObjectId();
-		this.dateCreation = new Date().toString();
-		this.dateModify = new Date().toString();
+		this.userId = new ObjectId(userId);
+		this.apartmentId = new ObjectId(apartmentId);
+		this.dateCreation = new Date();
+		this.dateModify = new Date();
 	}
 
 
@@ -86,19 +83,19 @@ public class Comment {
 		this.apartmentId = apartmentId;
 	}
 
-	public String getDateCreation() {
+	public Date getDateCreation() {
 		return dateCreation;
 	}
 
-	public void setDateCreation(String dateCreation) {
+	public void setDateCreation(Date dateCreation) {
 		this.dateCreation = dateCreation;
 	}
 
-	public String getDateModify() {
+	public Date getDateModify() {
 		return dateModify;
 	}
 
-	public void setDateModify(String dateModify) {
+	public void setDateModify(Date dateModify) {
 		this.dateModify = dateModify;
 	}
 
