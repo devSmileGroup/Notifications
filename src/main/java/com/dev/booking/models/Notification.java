@@ -5,12 +5,17 @@ import java.util.Date;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class Notification {
 	@Id
 	private ObjectId id;
+	
 	private String title;
 	private String text;
-	private String status;
+	
+	private Object status;
 	
 	private ObjectId userId;
 	
@@ -20,7 +25,7 @@ public class Notification {
 	public Notification() {}
 	
 	public Notification(ObjectId id, String title, String text,
-					    String status, ObjectId userId,
+			Object status, ObjectId userId,
 					    Date dateCreation, Date dateModify) {
 		this.id = id;
 		this.title = title;
@@ -49,10 +54,10 @@ public class Notification {
 	public void setText(String text) {
 		this.text = text;
 	}
-	public String getStatus() {
+	public Object getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(Object status) {
 		this.status = status;
 	}
 	public ObjectId getUserId() {
