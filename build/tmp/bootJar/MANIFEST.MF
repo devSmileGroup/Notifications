@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
-Start-Class: com.dev.booking.App
+Start-Class: com.dev.booking.Application
 Main-Class: org.springframework.boot.loader.JarLauncher
 
