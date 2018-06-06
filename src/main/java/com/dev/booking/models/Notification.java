@@ -3,7 +3,9 @@ package com.dev.booking.models;
 import java.util.Date;
 
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import lombok.Data;
 
@@ -19,20 +21,22 @@ public class Notification {
 	
 	private ObjectId userId;
 	
-	private Date dateCreation;
-	private Date dateModify;
+	@CreatedDate
+    private Date createdDate;
+    @LastModifiedDate
+    private Date modifiedDate;
 	
 	public Notification() {}
 	
 	public Notification(ObjectId id, String title, String text,
 			Object status, ObjectId userId,
-					    Date dateCreation, Date dateModify) {
+					    Date createdDate, Date modifiedDate) {
 		this.id = id;
 		this.title = title;
 		this.text = text;
 		this.status = status;
 		this.userId = userId;
-		this.dateCreation = dateCreation;
-		this.dateModify = dateModify;
+		this.createdDate = createdDate;
+		this.modifiedDate = modifiedDate;
 	}
 }
