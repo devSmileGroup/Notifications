@@ -1,15 +1,11 @@
 package com.dev.booking.models;
 
 import java.util.Date;
-
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
-
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
 public class Comment {
