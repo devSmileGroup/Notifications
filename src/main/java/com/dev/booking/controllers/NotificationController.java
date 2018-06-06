@@ -35,9 +35,6 @@ public class NotificationController {
 			notification.setId(new ObjectId());
 			notification.setDateCreation(new Date());
 			notification.setDateModify(new Date());
-			System.out.println("------------------");
-			System.out.println(notification.getStatus());
-			System.out.println("------------------");
 			
 			notificationRepository.save(notification);
 			logger.debug("Create notification with id - " + notification.getId().toString());
