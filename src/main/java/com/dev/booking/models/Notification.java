@@ -31,15 +31,6 @@ public class Notification {
 		this.dateModify = dateModify;
 	}
 	
-	public Notification(String title, String text, String status, ObjectId userId) {
-		this(new ObjectId(), title, text, status, userId, new Date(), new Date());
-	}
-	
-	public Notification(ObjectId id, String title, String text,
-						String status, ObjectId userId, Date dateCreation) {
-		this(id, title, text, status, userId, dateCreation, new Date());
-	}
-	
 	public ObjectId getId() {
 		return id;
 	}

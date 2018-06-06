@@ -1,10 +1,14 @@
 package com.dev.booking.controllers;
 
-import java.util.Optional;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.booking.models.Comment;
 import com.dev.booking.repositories.CommentRepository;
+import com.dev.booking.services.ResponseGenerator;
 import com.mongodb.MongoException;
 
 @RestController
@@ -27,63 +32,71 @@ public class CommentController {
 	private static final Logger logger = Logger.getLogger(CommentController.class);
 	
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-	public void create(@RequestBody Comment comment) {
+	public ResponseEntity<String> create(@RequestBody Comment comment) {
 		try {
-			Comment cmt = new Comment(
-				comment.getTitle(),
-				comment.getText(),
-				comment.getRating(),
-				comment.getUserId(),
-				comment.getApartmentId()
-			);
-			commentRepository.save(cmt);
+			comment.setId(new ObjectId());
+			comment.setDateCreation(new Date());
+			comment.setDateModify(new Date());
+			
+			commentRepository.save(comment);
+			
 			logger.debug("Create comment with id - " + comment.getId().toString());
+			
+			return ResponseGenerator.generateJsonResponse(200, null, null);
 		}
 		catch(MongoException ex) {
 			logger.error("Error on comment create - " + ex);
+			
+			return ResponseGenerator.generateJsonResponse(500, null, "Internal server error");
 		}
 	}
 	
 	@GetMapping(value="/{id}")
-	public Optional<Comment> read(@PathVariable String id) {
+	public ResponseEntity<String> read(@PathVariable String id) {
 		try {
+			Comment comment = commentRepository.findById(id).get();
+			
 			logger.debug("Read comment with id - " + id);
-			return commentRepository.findById(id);
+			
+			return ResponseGenerator.generateJsonResponse(200, comment, null);
 		}
 		catch(MongoException ex) {
 			logger.error("Error on comment read - " + ex);
+			
+			return ResponseGenerator.generateJsonResponse(500, null, "Internal server error");
 		}
-		return null;
 	}
 	
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-	public void update(@RequestBody Comment comment) {
+	public ResponseEntity<String> update(@RequestBody Comment comment) {
 		try {
-			Comment cmt = new Comment(
-					comment.getId(),
-					comment.getTitle(),
-					comment.getText(),
-					comment.getRating(),
-					comment.getUserId(),
-					comment.getApartmentId(),
-					comment.getDateCreation()
-				);
-			commentRepository.save(cmt);
+			comment.setDateModify(new Date());
+			commentRepository.save(comment);
+			
 			logger.debug("Update comment with id - " + comment.getId().toString());
+		
+			return ResponseGenerator.generateJsonResponse(200, null, null);
 		}
 		catch(MongoException ex) {
 			logger.error("Error on comment update - " + ex);
+			
+			return ResponseGenerator.generateJsonResponse(500, null, "Internal server error");
 		}
 	}
 	
 	@DeleteMapping(value="/{id}")
-	public void delete(@PathVariable String id) {
+	public ResponseEntity<String> delete(@PathVariable String id) {
 		try {
 			commentRepository.deleteById(id);
+			
 			logger.debug("Delete comment with id - " + id);
+			
+			return ResponseGenerator.generateJsonResponse(200, null, null);
 		}
 		catch(MongoException ex) {
 			logger.error("Error on comment delete - " + ex);
+			
+			return ResponseGenerator.generateJsonResponse(500, null, "Internal server error");
 		}
 	}
 }

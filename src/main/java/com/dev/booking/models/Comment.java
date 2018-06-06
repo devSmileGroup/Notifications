@@ -34,17 +34,6 @@ public class Comment {
 		this.dateCreation = dateCreation;
 		this.dateModify = dateModify;
 	}
-	
-	public Comment(String title, String text, Integer rating,
-				   ObjectId userId, ObjectId apartmentId) {
-		this(new ObjectId(), title, text, rating, userId, apartmentId, new Date(), new Date());
-	}
-	
-	public Comment(ObjectId id, String title, String text,
-			   Integer rating, ObjectId userId, ObjectId apartmentId,
-			   Date dateCreation) {
-		this(id, title, text, rating, userId, apartmentId, dateCreation, new Date());
-	}
 		
 	public ObjectId getId() {
 		return id;
