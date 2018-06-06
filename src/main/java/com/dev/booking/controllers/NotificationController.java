@@ -1,7 +1,6 @@
 package com.dev.booking.controllers;
 
 import java.util.Date;
-import java.util.Optional;
 
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.booking.models.Comment;
 import com.dev.booking.models.Notification;
 import com.dev.booking.repositories.NotificationRepository;
 import com.dev.booking.services.ResponseGenerator;
@@ -37,6 +35,9 @@ public class NotificationController {
 			notification.setId(new ObjectId());
 			notification.setDateCreation(new Date());
 			notification.setDateModify(new Date());
+			System.out.println("------------------");
+			System.out.println(notification.getStatus());
+			System.out.println("------------------");
 			
 			notificationRepository.save(notification);
 			logger.debug("Create notification with id - " + notification.getId().toString());
