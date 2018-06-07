@@ -2,9 +2,8 @@ package com.dev.booking.models;
 
 import java.util.Date;
 
-import javax.inject.Inject;
-
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -18,7 +17,7 @@ public class Notification {
 	private String title;
 	private String text;
 	
-	@Inject
+	@Autowired
 	private Status status;
 	
 	private ObjectId userId;

@@ -1,7 +1,6 @@
 package com.dev.booking.models;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import lombok.Data;
@@ -12,6 +11,6 @@ import lombok.Data;
 public class Status {
 	private String uiStatus;
 	
-	@Inject
+	@Autowired
 	private EmailStatus emailStatus;
 }
