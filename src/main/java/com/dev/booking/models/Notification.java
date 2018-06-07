@@ -12,12 +12,9 @@ import lombok.Data;
 public class Notification {
 	@Id
 	private ObjectId id;
-	
 	private String title;
 	private String text;
-	
 	private Object status;
-	
 	private ObjectId userId;
 	
 	@CreatedDate
@@ -25,6 +22,7 @@ public class Notification {
     @LastModifiedDate
     private Date modifiedDate;
 	
+    
 	public Notification() {}
 	
 	public Notification(ObjectId id, String title, String text,

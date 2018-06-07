@@ -33,8 +33,8 @@ public class CommentController {
 	public ResponseEntity<String> create(@RequestBody Comment comment) {
 		try {
 			comment.setId(new ObjectId());
-			comment.setDateCreation(new Date());
-			comment.setDateModify(new Date());
+			comment.setCreatedDate(new Date());
+			comment.setModifiedDate(new Date());
 			
 			commentRepository.save(comment);
 			
@@ -68,7 +68,7 @@ public class CommentController {
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> update(@RequestBody Comment comment) {
 		try {
-			comment.setDateModify(new Date());
+			comment.setModifiedDate(new Date());
 			commentRepository.save(comment);
 			
 			logger.debug("Update comment with id - " + comment.getId().toString());

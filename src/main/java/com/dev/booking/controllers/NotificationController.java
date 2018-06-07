@@ -32,9 +32,10 @@ public class NotificationController {
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> create(@RequestBody Notification notification) {
 		try {
-			notification.setId(new ObjectId());
-			notification.setDateCreation(new Date());
-			notification.setDateModify(new Date());
+			
+			// Should be removed
+			notification.setCreatedDate(new Date());
+			notification.setModifiedDate(new Date());
 			
 			notificationRepository.save(notification);
 			logger.debug("Create notification with id - " + notification.getId().toString());
@@ -67,7 +68,7 @@ public class NotificationController {
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> update(@RequestBody Notification notification) {
 		try {
-			notification.setDateModify(new Date());
+			notification.setModifiedDate(new Date());
 			notificationRepository.save(notification);
 			
 			logger.debug("Update notification with id - " + notification.getId().toString());
