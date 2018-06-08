@@ -16,13 +16,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.dev.booking.models.Notification;
 import com.dev.booking.repositories.NotificationRepository;
+import com.dev.booking.services.EmailService;
 import com.mongodb.MongoException;
 
 @RestController
 @RequestMapping("/notifications")
 public class NotificationController {
+	
 	@Autowired
 	NotificationRepository notificationRepository;
+	
+	@Autowired
+	EmailService emailService;
 	
 	private static final Logger logger = Logger.getLogger(NotificationController.class);
 	
@@ -30,6 +35,8 @@ public class NotificationController {
 	public void create(@RequestBody Notification notification) {
 		try {
 			notificationRepository.save(notification);
+			// Sending message about notification to specified email
+			//emailService.sendMessage("vladmartishevskii@gmail.com", notification.getTitle(), notification.getText());
 			logger.debug("Create notification with id - " + notification.getId().toString());
 			
 		}
