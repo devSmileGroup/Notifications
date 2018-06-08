@@ -21,11 +21,11 @@ import com.mongodb.MongoException;
 @RestController
 @RequestMapping("/comments")
 public class CommentController {
-
+	
+	private static final Logger logger = Logger.getLogger(CommentController.class);
+	
 	@Autowired
 	CommentRepository commentRepository;
-
-	private static final Logger logger = Logger.getLogger(CommentController.class);
 
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void create(@RequestBody Comment comment) {

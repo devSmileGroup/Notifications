@@ -23,13 +23,15 @@ import com.mongodb.MongoException;
 @RequestMapping("/notifications")
 public class NotificationController {
 	
+	private static final Logger logger = Logger.getLogger(NotificationController.class);
+	
 	@Autowired
 	NotificationRepository notificationRepository;
 	
 	@Autowired
 	EmailService emailService;
 	
-	private static final Logger logger = Logger.getLogger(NotificationController.class);
+	
 	
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void create(@RequestBody Notification notification) {
