@@ -1,11 +1,10 @@
 package com.dev.booking.controllers;
 
-import java.util.Optional;
-
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,62 +33,95 @@ public class NotificationController {
 	
 	
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-	public void create(@RequestBody Notification notification) {
+	public ResponseEntity<String> create(@RequestBody Notification notification) {
 		try {
 			notificationRepository.save(notification);
 			// Sending message about notification to specified email
 			//emailService.sendMessage("vladmartishevskii@gmail.com", notification.getTitle(), notification.getText());
 			logger.debug("Create notification with id - " + notification.getId().toString());
 			
+			return ResponseEntity
+					.ok()
+					.contentType(MediaType.TEXT_PLAIN)
+					.body("Success");
 		}
 		catch(MongoException ex) {
 			logger.error("Error on notification create - " + ex);
+			
+			return ResponseEntity
+					.status(500)
+					.contentType(MediaType.TEXT_PLAIN)
+					.body("Failed: " + ex);
 		}
 	}
 	
 	@GetMapping(value="/{id}")
-	public Optional<Notification> read(@PathVariable ObjectId id) {
+	public ResponseEntity<Notification> read(@PathVariable ObjectId id) {
+		Notification notification = null;
 		try {
-			Optional<Notification> notification = notificationRepository.findById(id);
+			 notification = notificationRepository.findById(id).get();
 			
 			logger.debug("Read notification with id - " + id);
-			return notification;
+			
+			return ResponseEntity
+					.ok()
+					.contentType(MediaType.APPLICATION_JSON_UTF8)
+					.body(notification);
 		}
 		catch(MongoException ex) {
 			logger.error("Error on notification read - " + ex);
-			return null;
+			
+			return ResponseEntity
+					.status(500)
+					.contentType(MediaType.APPLICATION_JSON_UTF8)
+					.body(notification);
 		}
 	}
 	
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-	public void update(@RequestBody Notification notification) {
+	public ResponseEntity<String> update(@RequestBody Notification notification) {
+		Notification foundNotification = null;
 		try {
-			Optional<Notification> foundNotification = notificationRepository.findById(notification.getId());
-			if(foundNotification.isPresent()) {
-				foundNotification.get().setStatus(notification.getStatus());
-				foundNotification.get().setText(notification.getText());
-				foundNotification.get().setTitle(notification.getTitle());
-				notificationRepository.save(foundNotification.get());
-				logger.debug("Update notification with id - " + notification.getId().toString());
-			}
-			else {
-				logger.debug("Cannot update notification with id - " + notification.getId().toString());
-			}
+			foundNotification = notificationRepository.findById(notification.getId()).get();
+			foundNotification.setStatus(notification.getStatus());
+			foundNotification.setText(notification.getText());
+			foundNotification.setTitle(notification.getTitle());
+			notificationRepository.save(foundNotification);
+			logger.debug("Update notification with id - " + notification.getId().toString());
 			
+			return ResponseEntity
+					.ok()
+					.contentType(MediaType.TEXT_PLAIN)
+					.body("Success");
 		}
 		catch(MongoException ex) {
 			logger.error("Error on notification update - " + ex);
+			
+			return ResponseEntity
+					.status(500)
+					.contentType(MediaType.TEXT_PLAIN)
+					.body("Failed: " + ex);
 		}
 	}
 	
 	@DeleteMapping(value="/{id}")
-	public void delete(@PathVariable ObjectId id) {
+	public ResponseEntity<String> delete(@PathVariable ObjectId id) {
 		try {
 			notificationRepository.deleteById(id);
 			logger.debug("Delete notification with id - " + id);
+			
+			return ResponseEntity
+					.ok()
+					.contentType(MediaType.TEXT_PLAIN)
+					.body("Success");
 		}
 		catch(MongoException ex) {
 			logger.error("Error on notification delete - " + ex);
+			
+			return ResponseEntity
+					.status(500)
+					.contentType(MediaType.TEXT_PLAIN)
+					.body("Failed: " + ex);
 		}
 	}
 }
