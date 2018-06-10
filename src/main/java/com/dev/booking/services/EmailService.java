@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-	/*private static final Logger logger = Logger.getLogger(EmailService.class);
+	private static final Logger logger = Logger.getLogger(EmailService.class);
 	
 	@Autowired
 	public JavaMailSender emailSender;
@@ -21,6 +21,6 @@ public class EmailService {
 		message.setText(text);
 		logger.debug("Sending email message to: " + to + " with subject: " + subject + " and text: " + text);
 		emailSender.send(message);
-	}*/
+	}
 
 }

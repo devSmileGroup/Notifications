@@ -37,7 +37,7 @@ public class NotificationController {
 		try {
 			notificationRepository.save(notification);
 			// Sending message about notification to specified email
-			//emailService.sendMessage("vladmartishevskii@gmail.com", notification.getTitle(), notification.getText());
+			//emailService.sendMessage("def_x@ukr.net", notification.getTitle(), notification.getText());
 			logger.debug("Create notification with id - " + notification.getId().toString());
 			
 			return ResponseEntity
