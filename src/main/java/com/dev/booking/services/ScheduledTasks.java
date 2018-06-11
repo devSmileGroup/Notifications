@@ -45,8 +45,7 @@ public class ScheduledTasks {
 									+ el.getUserId());
 						}
 						else {
-							failedCount = el.getStatus().getEmailStatus().getFailedCount();
-							el.getStatus().getEmailStatus().setValue(EmailStatusValue.FAILED);
+							failedCount = el.getStatus().getEmailStatus().getFailedCount() + 1;
 							
 							logger.error("Failed to send notification "
 									+ el.getTitle()
@@ -58,6 +57,18 @@ public class ScheduledTasks {
 					}
 				};
 				thread.start();
+			}
+		}
+	}
+	
+	@Scheduled(cron="*/25 * * * * *")
+	public void changeStatus() {
+		List<Notification> list = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
+		
+		for(Notification el:list) {
+			if(el.getStatus().getEmailStatus().getFailedCount() > 2) {
+				el.getStatus().getEmailStatus().setValue(EmailStatusValue.FAILED);
+				notificationRepository.save(el);
 			}
 		}
 	}
