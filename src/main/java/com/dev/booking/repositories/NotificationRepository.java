@@ -9,6 +9,6 @@ import org.springframework.data.mongodb.repository.Query;
 import com.dev.booking.models.Notification;
 
 public interface NotificationRepository extends MongoRepository<Notification, ObjectId> {
-	@Query("{'$or': [{'status.emailStatus.value' : ?0 }, {'status.emailStatus.value' : ?1 }]}")
+	@Query("{'$or': [{'email_info.status' : ?0 }, {'email_info.status' : ?1 }]}")
 	public List<Notification> findByEmailStatus(String value0, String value1);
 }

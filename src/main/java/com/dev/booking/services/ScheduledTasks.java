@@ -1,15 +1,21 @@
 package com.dev.booking.services;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.dev.booking.models.EmailStatusValue;
+import com.dev.booking.models.EmailStatus;
 import com.dev.booking.models.Notification;
+import com.dev.booking.models.User;
 import com.dev.booking.repositories.NotificationRepository;
 
 @Component
@@ -17,63 +23,90 @@ public class ScheduledTasks {
 	private static final Logger logger = Logger.getLogger(ScheduledTasks.class);
 	
 	@Autowired
-	EmailService emailService;
-	@Autowired
-	NotificationRepository notificationRepository;
+	private EmailService emailService;
 	
-	@Scheduled(cron="*/20 * * * * *")
+	@Autowired
+	private NotificationRepository notificationRepository;
+	
+	@Value("${mailing.time.difference}")
+	private long mailingTimeDifference;
+	
+	@Scheduled(cron="${mailing.interval}")
 	public void sendNotification() {
-		List<Notification> list = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
+		List<Notification> notificationsList = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
 		
-		for(Notification el:list) {
-			if(diffMinutes(new Date(), el.getCreatedDate()) > 20) {
-				if(el.getStatus().getEmailStatus().getValue() != EmailStatusValue.IN_PROCESS) {
-					el.getStatus().getEmailStatus().setValue(EmailStatusValue.IN_PROCESS);
-					notificationRepository.save(el);
+		Integer threadsAmount = (int) Math.ceil((float)notificationsList.size() / 50) < 10 
+				? (int) Math.ceil((float)notificationsList.size() / 50) 
+				: 10;
+		if(threadsAmount != 0) {
+			ExecutorService executorService = Executors.newFixedThreadPool(threadsAmount);
+			
+			List<Notification> validNotificationsList = new ArrayList<Notification>();
+			
+			notificationsList.forEach(notification -> {
+				if(readyToSend(LocalDateTime.now(), notification.getModifiedDate())) {
+					EmailStatus emailStatus = notification.getEmailInfo().getEmailStatus();
+					int sendingCount = notification.getEmailInfo().getSendingCount();
+					
+					if(emailStatus.equals(EmailStatus.NEW)) {
+						notification.getEmailInfo().setEmailStatus(EmailStatus.IN_PROCESS);
+					}
+					
+					notification.getEmailInfo().setSendingCount(++sendingCount);
+					notificationRepository.save(notification);
+					validNotificationsList.add(notification);
 				}
-				
-				Thread thread = new Thread("NOTIFICATION_THREAD") {
-					public void run() {
-						int failedCount;
-						if(emailService.sendMessage("def_x@ukr.net", el.getTitle(), el.getText())) {
-							failedCount = 0;
-							el.getStatus().getEmailStatus().setValue(EmailStatusValue.PROCESSED);
+			});
+			
+			if(validNotificationsList.size() > 0) {
+				executorService.submit(() -> {
+					validNotificationsList.forEach(notification -> {
+						//TODO get user email by userId
+						User testUser = new User("def_x@ukr.net");
+						
+						if(emailService.sendMessage(testUser.getEmail(), notification.getTitle(), notification.getText())) {
+							notification.getEmailInfo().setEmailStatus(EmailStatus.PROCESSED);
+							notificationRepository.save(notification);
 							
-							logger.debug("send notification "
-									+ el.getTitle()
-									+ "to user with id - "
-									+ el.getUserId());
+							logger.info(String.format("Notification with id: %s successfully sended"
+									+ " to user with id: %s", notification.getId(), notification.getUserId()));
 						}
 						else {
-							failedCount = el.getStatus().getEmailStatus().getFailedCount() + 1;
-							
-							logger.error("Failed to send notification "
-									+ el.getTitle()
-									+ "to user with id - "
-									+ el.getUserId());
+							logger.error(String.format("Notification with id: %s not sended"
+									+ " to user with id: %s", notification.getId(), notification.getUserId()));
 						}
-						el.getStatus().getEmailStatus().setFailedCount(failedCount);
-						notificationRepository.save(el);
-					}
-				};
-				thread.start();
+					});
+				});
 			}
 		}
 	}
 	
-	@Scheduled(cron="*/25 * * * * *")
+	@Scheduled(cron="${mailing.status.checkout.interval}")
 	public void changeStatus() {
-		List<Notification> list = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
+		List<Notification> notificationsList = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
 		
-		for(Notification el:list) {
-			if(el.getStatus().getEmailStatus().getFailedCount() > 2) {
-				el.getStatus().getEmailStatus().setValue(EmailStatusValue.FAILED);
-				notificationRepository.save(el);
+		notificationsList.forEach(notification -> {
+			if(notification.getEmailInfo().getSendingCount() > 2) {
+				notification.getEmailInfo().setEmailStatus(EmailStatus.FAILED);
+				notificationRepository.save(notification);
 			}
-		}
+		});
 	}
 	
-	private Long diffMinutes(Date current, Date modified) {
-		return (current.getTime() - modified.getTime()) / (1000 * 1);
+	private Boolean readyToSend(LocalDateTime current, LocalDateTime modified) {
+		long timeDifference;
+		
+		timeDifference = ChronoUnit.YEARS.between(modified, current) * 365 * 24 * 60 * 60
+				+ ChronoUnit.DAYS.between(modified, current) * 24 * 60 * 60
+				+ ChronoUnit.HOURS.between(modified, current) * 60 * 60
+				+ ChronoUnit.MINUTES.between(modified, current) * 60
+				+ ChronoUnit.SECONDS.between(modified, current);
+		
+		if(timeDifference >= mailingTimeDifference) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 }
