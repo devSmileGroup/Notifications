@@ -31,20 +31,21 @@ public class ScheduledTasks {
 	@Value("${mailing.time.difference}")
 	private long mailingTimeDifference;
 	
+	@Value("${mailing.message.quantity}")
+	private int mailingMessageQuantity;
+	
 	@Scheduled(cron="${mailing.interval}")
 	public void sendNotification() {
 		List<Notification> notificationsList = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
 		
-		Integer threadsAmount = (int) Math.ceil((float)notificationsList.size() / 50) < 10 
-				? (int) Math.ceil((float)notificationsList.size() / 50) 
-				: 10;
+		Integer threadsAmount = calcNumberOfThreads(notificationsList.size());
 		if(threadsAmount != 0) {
 			ExecutorService executorService = Executors.newFixedThreadPool(threadsAmount);
 			
 			List<Notification> validNotificationsList = new ArrayList<Notification>();
 			
 			notificationsList.forEach(notification -> {
-				if(readyToSend(LocalDateTime.now(), notification.getModifiedDate())) {
+				if(readyToSend(notification.getModifiedDate())) {
 					EmailStatus emailStatus = notification.getEmailInfo().getEmailStatus();
 					int sendingCount = notification.getEmailInfo().getSendingCount();
 					
@@ -93,8 +94,9 @@ public class ScheduledTasks {
 		});
 	}
 	
-	private Boolean readyToSend(LocalDateTime current, LocalDateTime modified) {
+	private Boolean readyToSend(LocalDateTime modified) {
 		long timeDifference;
+		LocalDateTime current = LocalDateTime.now();
 		
 		timeDifference = ChronoUnit.YEARS.between(modified, current) * 365 * 24 * 60 * 60
 				+ ChronoUnit.DAYS.between(modified, current) * 24 * 60 * 60
@@ -102,11 +104,12 @@ public class ScheduledTasks {
 				+ ChronoUnit.MINUTES.between(modified, current) * 60
 				+ ChronoUnit.SECONDS.between(modified, current);
 		
-		if(timeDifference >= mailingTimeDifference) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return timeDifference >= mailingTimeDifference ? true : false;
+	}
+	
+	private int calcNumberOfThreads(int notificationsListSize) {
+		return (int) Math.ceil((float)notificationsListSize / mailingMessageQuantity) < 10 
+				? (int) Math.ceil((float)notificationsListSize / mailingMessageQuantity) 
+				: 10;
 	}
 }

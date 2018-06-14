@@ -1,7 +1,5 @@
 package com.dev.booking.controllers;
 
-import java.util.Optional;
-
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.dev.booking.models.Comment;
+import com.dev.booking.models.Notification;
 import com.dev.booking.repositories.CommentRepository;
 import com.mongodb.MongoException;
 
@@ -26,7 +25,7 @@ public class CommentController {
 	private static final Logger logger = Logger.getLogger(CommentController.class);
 	
 	@Autowired
-	CommentRepository commentRepository;
+	private CommentRepository commentRepository;
 
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> create(@RequestBody Comment comment) {
@@ -74,11 +73,8 @@ public class CommentController {
 	public ResponseEntity<String> update(@RequestBody Comment comment) {
 		try {
 			Comment foundComment = commentRepository.findById(comment.getId()).get();
-			foundComment.setTitle(comment.getTitle());
-			foundComment.setText(comment.getText());
-			foundComment.setRating(comment.getRating());
-
-			commentRepository.save(foundComment);
+			updateComment(foundComment, comment);
+			
 			logger.debug("Update comment with id - " + comment.getId().toString());
 			
 			return ResponseEntity
@@ -116,5 +112,12 @@ public class CommentController {
 					.contentType(MediaType.TEXT_PLAIN)
 					.body("Failed: " + ex);
 		}
+	}
+	
+	private void updateComment(Comment foundComment, Comment comment) {
+		foundComment.setTitle(comment.getTitle());
+		foundComment.setText(comment.getText());
+		foundComment.setRating(comment.getRating());
+		commentRepository.save(foundComment);
 	}
 }

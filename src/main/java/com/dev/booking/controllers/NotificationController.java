@@ -25,19 +25,13 @@ public class NotificationController {
 	private static final Logger logger = Logger.getLogger(NotificationController.class);
 	
 	@Autowired
-	NotificationRepository notificationRepository;
-	
-	@Autowired
-	EmailService emailService;
-	
-	
+	private NotificationRepository notificationRepository;
 	
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> create(@RequestBody Notification notification) {
 		try {
 			notificationRepository.save(notification);
-			// Sending message about notification to specified email
-			//emailService.sendMessage("def_x@ukr.net", notification.getTitle(), notification.getText());
+			
 			logger.debug("Create notification with id - " + notification.getId().toString());
 			
 			return ResponseEntity
@@ -83,11 +77,8 @@ public class NotificationController {
 		Notification foundNotification = null;
 		try {
 			foundNotification = notificationRepository.findById(notification.getId()).get();
-			foundNotification.setEmailInfo(notification.getEmailInfo());
-			foundNotification.setUiStatus(notification.getUiStatus());
-			foundNotification.setText(notification.getText());
-			foundNotification.setTitle(notification.getTitle());
-			notificationRepository.save(foundNotification);
+			updateNotification(foundNotification, notification);
+			
 			logger.debug("Update notification with id - " + notification.getId().toString());
 			
 			return ResponseEntity
@@ -124,5 +115,13 @@ public class NotificationController {
 					.contentType(MediaType.TEXT_PLAIN)
 					.body("Failed: " + ex);
 		}
+	}
+	
+	private void updateNotification(Notification foundNotification, Notification notification) {
+		foundNotification.setEmailInfo(notification.getEmailInfo());
+		foundNotification.setUiStatus(notification.getUiStatus());
+		foundNotification.setText(notification.getText());
+		foundNotification.setTitle(notification.getTitle());
+		notificationRepository.save(foundNotification);
 	}
 }
