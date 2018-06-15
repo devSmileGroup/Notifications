@@ -1,5 +1,6 @@
 package com.dev.booking.services;
 
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -21,10 +22,10 @@ import com.dev.booking.repositories.NotificationRepository;
 @Component
 public class ScheduledTasks {
 	private static final Logger logger = Logger.getLogger(ScheduledTasks.class);
+	private static final int EMAIL_SEND_DELAY_IN_MINUTES = 20; // in minutes
 	
 	@Autowired
 	private EmailService emailService;
-	
 	@Autowired
 	private NotificationRepository notificationRepository;
 	
@@ -33,7 +34,6 @@ public class ScheduledTasks {
 	
 	@Value("${mailing.message.quantity}")
 	private int mailingMessageQuantity;
-	
 	@Value("${mailing.threads.amount}")
 	private int mailingThreadsAmount;
 	
@@ -89,6 +89,7 @@ public class ScheduledTasks {
 	public void changeStatus() {
 		List<Notification> notificationsList = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
 		
+
 		notificationsList.forEach(notification -> {
 			if(notification.getEmailInfo().getSendingCount() > 2) {
 				notification.getEmailInfo().setEmailStatus(EmailStatus.FAILED);
@@ -100,6 +101,7 @@ public class ScheduledTasks {
 		});
 	}
 	
+
 	private int calcNumberOfThreads(int notificationsListSize) {
 		return (int) Math.ceil((float)notificationsListSize / mailingMessageQuantity) < mailingThreadsAmount 
 				? (int) Math.ceil((float)notificationsListSize / mailingMessageQuantity) 

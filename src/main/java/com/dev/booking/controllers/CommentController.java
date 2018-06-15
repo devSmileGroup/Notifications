@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.dev.booking.models.Comment;
+import com.dev.booking.models.Notification;
 import com.dev.booking.repositories.CommentRepository;
 import com.mongodb.MongoException;
 
