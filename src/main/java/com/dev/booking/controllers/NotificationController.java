@@ -54,9 +54,7 @@ public class NotificationController {
 		Notification notification = null;
 		try {
 			 notification = notificationRepository.findById(id).get();
-			
 			logger.debug("Read notification with id {}", id);
-			
 			return ResponseEntity
 					.ok()
 					.contentType(MediaType.APPLICATION_JSON_UTF8)
