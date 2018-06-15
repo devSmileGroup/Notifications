@@ -34,6 +34,9 @@ public class ScheduledTasks {
 	@Value("${mailing.message.quantity}")
 	private int mailingMessageQuantity;
 	
+	@Value("${mailing.threads.amount}")
+	private int mailingThreadsAmount;
+	
 	@Scheduled(cron="${mailing.interval}")
 	public void sendNotification() {
 		List<Notification> notificationsList = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
@@ -44,8 +47,8 @@ public class ScheduledTasks {
 			
 			List<Notification> validNotificationsList = new ArrayList<Notification>();
 			
-			notificationsList.forEach(notification -> {
-				if(readyToSend(notification.getModifiedDate())) {
+			notificationsList.forEach(notification -> {;
+				if(LocalDateTime.now().isAfter(notification.getModifiedDate().plusSeconds(mailingTimeDifference))) {
 					EmailStatus emailStatus = notification.getEmailInfo().getEmailStatus();
 					int sendingCount = notification.getEmailInfo().getSendingCount();
 					
@@ -62,7 +65,7 @@ public class ScheduledTasks {
 			if(validNotificationsList.size() > 0) {
 				executorService.submit(() -> {
 					validNotificationsList.forEach(notification -> {
-						//TODO get user email by userId
+						//TODO get user email by userId from Administration service
 						User testUser = new User("def_x@ukr.net");
 						
 						if(emailService.sendMessage(testUser.getEmail(), notification.getTitle(), notification.getText())) {
@@ -90,26 +93,16 @@ public class ScheduledTasks {
 			if(notification.getEmailInfo().getSendingCount() > 2) {
 				notification.getEmailInfo().setEmailStatus(EmailStatus.FAILED);
 				notificationRepository.save(notification);
+				
+				logger.error(String.format("Status of notification with id: %s set to failed, "
+						+ " sending count = %s", notification.getId(), notification.getEmailInfo().getSendingCount()));
 			}
 		});
 	}
 	
-	private Boolean readyToSend(LocalDateTime modified) {
-		long timeDifference;
-		LocalDateTime current = LocalDateTime.now();
-		
-		timeDifference = ChronoUnit.YEARS.between(modified, current) * 365 * 24 * 60 * 60
-				+ ChronoUnit.DAYS.between(modified, current) * 24 * 60 * 60
-				+ ChronoUnit.HOURS.between(modified, current) * 60 * 60
-				+ ChronoUnit.MINUTES.between(modified, current) * 60
-				+ ChronoUnit.SECONDS.between(modified, current);
-		
-		return timeDifference >= mailingTimeDifference ? true : false;
-	}
-	
 	private int calcNumberOfThreads(int notificationsListSize) {
-		return (int) Math.ceil((float)notificationsListSize / mailingMessageQuantity) < 10 
+		return (int) Math.ceil((float)notificationsListSize / mailingMessageQuantity) < mailingThreadsAmount 
 				? (int) Math.ceil((float)notificationsListSize / mailingMessageQuantity) 
-				: 10;
+				: mailingThreadsAmount;
 	}
 }

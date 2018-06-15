@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.dev.booking.models.Notification;
 import com.dev.booking.repositories.NotificationRepository;
-import com.dev.booking.services.EmailService;
 import com.mongodb.MongoException;
 
 @RestController
