@@ -35,4 +35,5 @@ public class Notification {
     @LastModifiedDate
     @Field("modified_date")
     private LocalDateTime modifiedDate;
+
 }

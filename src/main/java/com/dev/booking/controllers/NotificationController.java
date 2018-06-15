@@ -123,4 +123,5 @@ public class NotificationController {
 		foundNotification.setTitle(notification.getTitle());
 		notificationRepository.save(foundNotification);
 	}
+
 }

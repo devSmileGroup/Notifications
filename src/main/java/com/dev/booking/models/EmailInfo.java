@@ -10,4 +10,5 @@ public class EmailInfo {
 	private EmailStatus emailStatus;
 	@Field("sending_count")
 	private int sendingCount;
+
 }

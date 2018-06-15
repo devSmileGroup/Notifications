@@ -5,4 +5,5 @@ public enum EmailStatus {
 	IN_PROCESS,
 	PROCESSED,
 	FAILED;
+
 }

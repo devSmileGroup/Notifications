@@ -1,10 +1,11 @@
 package com.dev.booking.models;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -22,26 +23,15 @@ public class Comment {
     private String text;
     private Integer rating;
     
+    @Field("user_id")
     private ObjectId userId;
+    @Field("apartment_id")
     private ObjectId apartmentId;
     
     @CreatedDate
-    private Date createdDate;
+    @Field("created_date")
+    private LocalDateTime createdDate;
     @LastModifiedDate
-    private Date modifiedDate;
-    
-    public Comment() {}
-
-	public Comment(ObjectId id, String title, String text,
-				   Integer rating, ObjectId userId, ObjectId apartmentId,
-				   Date createdDate, Date modifiedDate) {
-		this.id = id;
-		this.title = title;
-		this.text = text;
-		this.rating = rating;
-		this.userId = userId;
-		this.apartmentId = apartmentId;
-		this.createdDate = createdDate;
-		this.modifiedDate = modifiedDate;
-	}
+    @Field("modified_date")
+    private LocalDateTime modifiedDate;
 }
