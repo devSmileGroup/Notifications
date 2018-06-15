@@ -1,7 +1,5 @@
 package com.dev.booking.controllers;
 
-import java.util.Optional;
-
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +24,7 @@ public class CommentController {
 	private static final Logger logger = Logger.getLogger(CommentController.class);
 	
 	@Autowired
-	CommentRepository commentRepository;
+	private CommentRepository commentRepository;
 
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> create(@RequestBody Comment comment) {
@@ -69,7 +67,7 @@ public class CommentController {
 					.body(comment);
 		}
 	}
-
+	
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> update(@RequestBody Comment comment) {
 		try {
@@ -86,7 +84,7 @@ public class CommentController {
 					.contentType(MediaType.TEXT_PLAIN)
 					.body("Success");
 		}
-		catch (MongoException ex) {
+		catch (NullPointerException | MongoException ex) {
 			logger.error("Error on comment update - " + ex);
 			
 			return ResponseEntity

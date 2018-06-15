@@ -20,7 +20,8 @@ public class Notification {
 	private ObjectId id;
 	private String title;
 	private String text;
-	private Status status;
+	private UIStatus uiStatus;
+	private EmailInfo emailInfo;
 	@JsonSerialize(using = ToStringSerializer.class)
 	private ObjectId userId;
 	

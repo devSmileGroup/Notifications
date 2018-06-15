@@ -83,7 +83,7 @@ public class NotificationController {
 		Notification foundNotification = null;
 		try {
 			foundNotification = notificationRepository.findById(notification.getId()).get();
-			foundNotification.setStatus(notification.getStatus());
+			foundNotification.getEmailInfo().setStatus(notification.getEmailInfo().getStatus());
 			foundNotification.setText(notification.getText());
 			foundNotification.setTitle(notification.getTitle());
 			notificationRepository.save(foundNotification);
