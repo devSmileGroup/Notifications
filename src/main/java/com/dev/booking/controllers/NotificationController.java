@@ -1,6 +1,7 @@
 package com.dev.booking.controllers;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -21,7 +22,7 @@ import com.mongodb.MongoException;
 @RequestMapping("/notifications")
 public class NotificationController {
 	
-	private static final Logger logger = Logger.getLogger(NotificationController.class);
+	private static final Logger logger = LogManager.getLogger(NotificationController.class);
 	
 	@Autowired
 	private NotificationRepository notificationRepository;
@@ -31,7 +32,7 @@ public class NotificationController {
 		try {
 			notificationRepository.save(notification);
 			
-			logger.debug("Create notification with id - " + notification.getId().toString());
+			logger.debug("Create notification with id {}", notification.getId().toString());
 			
 			return ResponseEntity
 					.ok()
@@ -39,7 +40,7 @@ public class NotificationController {
 					.body("Success");
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification create - " + ex);
+			logger.error("Error on notification create {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -54,7 +55,7 @@ public class NotificationController {
 		try {
 			 notification = notificationRepository.findById(id).get();
 			
-			logger.debug("Read notification with id - " + id);
+			logger.debug("Read notification with id {}", id);
 			
 			return ResponseEntity
 					.ok()
@@ -62,7 +63,7 @@ public class NotificationController {
 					.body(notification);
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification read - " + ex);
+			logger.error("Error on notification read {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -78,7 +79,7 @@ public class NotificationController {
 			foundNotification = notificationRepository.findById(notification.getId()).get();
 			updateNotification(foundNotification, notification);
 			
-			logger.debug("Update notification with id - " + notification.getId().toString());
+			logger.debug("Update notification with id {}", notification.getId().toString());
 			
 			return ResponseEntity
 					.ok()
@@ -86,7 +87,7 @@ public class NotificationController {
 					.body("Success");
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification update - " + ex);
+			logger.error("Error on notification update {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -99,7 +100,7 @@ public class NotificationController {
 	public ResponseEntity<String> delete(@PathVariable ObjectId id) {
 		try {
 			notificationRepository.deleteById(id);
-			logger.debug("Delete notification with id - " + id);
+			logger.debug("Delete notification with id {}", id);
 			
 			return ResponseEntity
 					.ok()
@@ -107,7 +108,7 @@ public class NotificationController {
 					.body("Success");
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification delete - " + ex);
+			logger.error("Error on notification delete {}", ex);
 			
 			return ResponseEntity
 					.status(500)
