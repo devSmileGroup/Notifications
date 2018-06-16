@@ -32,7 +32,7 @@ public class NotificationController {
 		try {
 			notificationRepository.save(notification);
 			
-			logger.debug("Create notification with id {}", notification.getId().toString());
+			logger.info("Create notification with id: {}", notification.getId().toString());
 			
 			return ResponseEntity
 					.ok()
@@ -40,7 +40,7 @@ public class NotificationController {
 					.body("Success");
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification create {}", ex);
+			logger.error("Error in creating notification: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -54,14 +54,14 @@ public class NotificationController {
 		Notification notification = null;
 		try {
 			 notification = notificationRepository.findById(id).get();
-			logger.debug("Read notification with id {}", id);
+			logger.info("Read notification with id: {}", id);
 			return ResponseEntity
 					.ok()
 					.contentType(MediaType.APPLICATION_JSON_UTF8)
 					.body(notification);
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification read {}", ex);
+			logger.error("Error in reading notification: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -77,7 +77,7 @@ public class NotificationController {
 			foundNotification = notificationRepository.findById(notification.getId()).get();
 			updateNotification(foundNotification, notification);
 			
-			logger.debug("Update notification with id {}", notification.getId().toString());
+			logger.info("Update notification with id: {}", notification.getId().toString());
 			
 			return ResponseEntity
 					.ok()
@@ -85,7 +85,7 @@ public class NotificationController {
 					.body("Success");
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification update {}", ex);
+			logger.error("Error in updating notification: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -98,7 +98,7 @@ public class NotificationController {
 	public ResponseEntity<String> delete(@PathVariable ObjectId id) {
 		try {
 			notificationRepository.deleteById(id);
-			logger.debug("Delete notification with id {}", id);
+			logger.info("Delete notification with id: {}", id);
 			
 			return ResponseEntity
 					.ok()
@@ -106,7 +106,7 @@ public class NotificationController {
 					.body("Success");
 		}
 		catch(MongoException ex) {
-			logger.error("Error on notification delete {}", ex);
+			logger.error("Error in deleting notification: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
