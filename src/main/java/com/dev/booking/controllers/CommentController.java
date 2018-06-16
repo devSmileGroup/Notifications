@@ -14,109 +14,41 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.dev.booking.models.Comment;
-
-import com.dev.booking.repositories.CommentRepository;
-import com.mongodb.MongoException;
+import com.dev.booking.services.CommentService;
 
 @RestController
 @RequestMapping("/comments")
 public class CommentController {
-	
-	private static final Logger logger = LogManager.getLogger(CommentController.class);
-	
 	@Autowired
-	private CommentRepository commentRepository;
+	private CommentService commentService;
 
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<String> create(@RequestBody Comment comment) {
-		try {
-			commentRepository.save(comment);
-			logger.info("Create comment with id: {}", comment.getId().toString());
-			return ResponseEntity
-					.ok()
-					.contentType(MediaType.TEXT_PLAIN)
-					.body("Success");
-		} catch (MongoException ex) {
-			logger.error("Error in creating of comment: {}", ex);
-			
-			return ResponseEntity
-					.status(500)
-					.contentType(MediaType.TEXT_PLAIN)
-					.body("Failed: " + ex);
-		}
+	public ResponseEntity<Comment> create(@RequestBody Comment comment) {
+		return ResponseEntity
+				.ok()
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.body(commentService.create(comment));
 	}
 
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<Comment> read(@PathVariable ObjectId id) {
-		Comment comment = null;
-		try {
-			comment = commentRepository.findById(id).get();
-			logger.info("Read comment with id: {}", id);
-			
-			return ResponseEntity
-					.ok()
-					.contentType(MediaType.APPLICATION_JSON_UTF8)
-					.body(comment);
-		} 
-		catch (MongoException ex) {
-			logger.error("Error in reading comment: {}", ex);
-			
-			return ResponseEntity
-					.status(500)
-					.contentType(MediaType.APPLICATION_JSON_UTF8)
-					.body(comment);
-		}
+		return ResponseEntity
+				.ok()
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.body(commentService.read(id));
 	}
 	
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<String> update(@RequestBody Comment comment) {
-		try {
-			Comment foundComment = commentRepository.findById(comment.getId()).get();
-			updateComment(foundComment, comment);
-			
-			logger.info("Update comment with id: {}", comment.getId().toString());
-			
-			return ResponseEntity
-					.ok()
-					.contentType(MediaType.TEXT_PLAIN)
-					.body("Success");
-		}
-		catch (NullPointerException | MongoException ex) {
-			logger.error("Error in updating comment: {}", ex);
-			
-			return ResponseEntity
-					.status(500)
-					.contentType(MediaType.TEXT_PLAIN)
-					.body("Failed: " + ex);
-		}
+	public ResponseEntity<Comment> update(@RequestBody Comment comment) {
+		return ResponseEntity
+				.ok()
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.body(commentService.update(comment));
 	}
 
 	@DeleteMapping(value = "/{id}")
-	public ResponseEntity<String> delete(@PathVariable ObjectId id) {
-		try {
-			commentRepository.deleteById(id);
-
-			logger.info("Delete comment with id: {}", id);
-			
-			return ResponseEntity
-					.ok()
-					.contentType(MediaType.TEXT_PLAIN)
-					.body("Success");
-		} 
-		catch (MongoException ex) {
-			logger.error("Error in deleting comment: {}", ex);
-			
-			return ResponseEntity
-					.status(500)
-					.contentType(MediaType.TEXT_PLAIN)
-					.body("Failed: " + ex);
-		}
+	public void delete(@PathVariable ObjectId id) {
+		commentService.delete(id);
 	}
 	
-	private void updateComment(Comment foundComment, Comment comment) {
-		foundComment.setTitle(comment.getTitle());
-		foundComment.setText(comment.getText());
-		foundComment.setRating(comment.getRating());
-		commentRepository.save(foundComment);
-	}
 }

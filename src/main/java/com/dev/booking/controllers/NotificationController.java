@@ -19,8 +19,7 @@ import com.dev.booking.services.NotificationService;
 @RestController
 @RequestMapping("/notifications")
 public class NotificationController {
-	private static final Logger logger = LogManager.getLogger(NotificationController.class);
-	
+
 	@Autowired
 	private NotificationService notificationService;
 	
