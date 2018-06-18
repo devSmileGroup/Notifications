@@ -1,19 +1,15 @@
 package com.dev.booking.services;
-
-
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import com.dev.booking.models.EmailStatus;
 import com.dev.booking.models.Notification;
 import com.dev.booking.models.User;
@@ -21,7 +17,7 @@ import com.dev.booking.repositories.NotificationRepository;
 
 @Component
 public class ScheduledTasks {
-	private static final Logger logger = Logger.getLogger(ScheduledTasks.class);
+	private static final Logger logger = LogManager.getLogger(ScheduledTasks.class);
 	private static final int EMAIL_SEND_DELAY_IN_MINUTES = 20; // in minutes
 	
 	@Autowired
@@ -72,12 +68,10 @@ public class ScheduledTasks {
 							notification.getEmailInfo().setEmailStatus(EmailStatus.PROCESSED);
 							notificationRepository.save(notification);
 							
-							logger.info(String.format("Notification with id: %s successfully sended"
-									+ " to user with id: %s", notification.getId(), notification.getUserId()));
+							logger.info("Notification with id: {} succesfully sended to user with id: {}", notification.getId(), notification.getUserId());
 						}
 						else {
-							logger.error(String.format("Notification with id: %s not sended"
-									+ " to user with id: %s", notification.getId(), notification.getUserId()));
+							logger.error("Notification with id: {} not sended to user with id: {}", notification.getId(), notification.getUserId());
 						}
 					});
 				});

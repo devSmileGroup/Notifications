@@ -1,6 +1,6 @@
 package com.dev.booking.controllers;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.dev.booking.models.Comment;
-import com.dev.booking.models.Notification;
+
 import com.dev.booking.repositories.CommentRepository;
 import com.mongodb.MongoException;
 
@@ -22,7 +22,7 @@ import com.mongodb.MongoException;
 @RequestMapping("/comments")
 public class CommentController {
 	
-	private static final Logger logger = Logger.getLogger(CommentController.class);
+	private static final Logger logger = LogManager.getLogger(CommentController.class);
 	
 	@Autowired
 	private CommentRepository commentRepository;
@@ -31,14 +31,13 @@ public class CommentController {
 	public ResponseEntity<String> create(@RequestBody Comment comment) {
 		try {
 			commentRepository.save(comment);
-			logger.debug("Create comment with id - " + comment.getId().toString());
-			
+			logger.info("Create comment with id: {}", comment.getId().toString());
 			return ResponseEntity
 					.ok()
 					.contentType(MediaType.TEXT_PLAIN)
 					.body("Success");
 		} catch (MongoException ex) {
-			logger.error("Error on comment create - " + ex);
+			logger.error("Error in creating of comment: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -52,7 +51,7 @@ public class CommentController {
 		Comment comment = null;
 		try {
 			comment = commentRepository.findById(id).get();
-			logger.debug("Read comment with id - " + id);
+			logger.info("Read comment with id: {}", id);
 			
 			return ResponseEntity
 					.ok()
@@ -60,7 +59,7 @@ public class CommentController {
 					.body(comment);
 		} 
 		catch (MongoException ex) {
-			logger.error("Error on comment read - " + ex);
+			logger.error("Error in reading comment: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -75,7 +74,7 @@ public class CommentController {
 			Comment foundComment = commentRepository.findById(comment.getId()).get();
 			updateComment(foundComment, comment);
 			
-			logger.debug("Update comment with id - " + comment.getId().toString());
+			logger.info("Update comment with id: {}", comment.getId().toString());
 			
 			return ResponseEntity
 					.ok()
@@ -83,7 +82,7 @@ public class CommentController {
 					.body("Success");
 		}
 		catch (NullPointerException | MongoException ex) {
-			logger.error("Error on comment update - " + ex);
+			logger.error("Error in updating comment: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
@@ -97,7 +96,7 @@ public class CommentController {
 		try {
 			commentRepository.deleteById(id);
 
-			logger.debug("Delete comment with id - " + id);
+			logger.info("Delete comment with id: {}", id);
 			
 			return ResponseEntity
 					.ok()
@@ -105,7 +104,7 @@ public class CommentController {
 					.body("Success");
 		} 
 		catch (MongoException ex) {
-			logger.error("Error on comment delete - " + ex);
+			logger.error("Error in deleting comment: {}", ex);
 			
 			return ResponseEntity
 					.status(500)
