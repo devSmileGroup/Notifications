@@ -46,13 +46,12 @@ public class ScheduledTasks {
 			notificationsList.forEach(notification -> {;
 				if(LocalDateTime.now().isAfter(notification.getModifiedDate().plusSeconds(mailingTimeDifference))) {
 					EmailStatus emailStatus = notification.getEmailInfo().getEmailStatus();
-					int sendingCount = notification.getEmailInfo().getSendingCount();
 					
 					if(emailStatus.equals(EmailStatus.NEW)) {
 						notification.getEmailInfo().setEmailStatus(EmailStatus.IN_PROCESS);
 					}
 					
-					notification.getEmailInfo().setSendingCount(++sendingCount);
+					notification.getEmailInfo().setSendingCount(notification.getEmailInfo().getSendingCount() + 1);
 					notificationRepository.save(notification);
 					validNotificationsList.add(notification);
 				}
