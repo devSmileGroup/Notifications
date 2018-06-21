@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import com.dev.booking.models.EmailStatus;
@@ -18,7 +19,6 @@ import com.dev.booking.repositories.NotificationRepository;
 @Component
 public class ScheduledTasks {
 	private static final Logger logger = LogManager.getLogger(ScheduledTasks.class);
-	private static final int EMAIL_SEND_DELAY_IN_MINUTES = 20; // in minutes
 	
 	@Autowired
 	private EmailService emailService;
@@ -35,7 +35,13 @@ public class ScheduledTasks {
 	
 	@Scheduled(cron="${mailing.interval}")
 	public void sendNotification() {
-		List<Notification> notificationsList = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
+		List<Notification> notificationsList = notificationRepository
+				.findByEmailStatus(
+						"NEW",
+						"IN_PROCESS",
+						LocalDateTime.now().minusMinutes(mailingTimeDifference),
+						PageRequest.of(0, mailingMessageQuantity * mailingThreadsAmount)
+						);
 		
 		Integer threadsAmount = calcNumberOfThreads(notificationsList.size());
 		if(threadsAmount != 0) {
@@ -43,12 +49,10 @@ public class ScheduledTasks {
 			
 			List<Notification> validNotificationsList = new ArrayList<Notification>();
 			
-			notificationsList.forEach(notification -> {;
-				if(LocalDateTime.now().isAfter(notification.getModifiedDate().plusSeconds(mailingTimeDifference))) {
+			notificationsList.forEach(notification -> {
 					notification.getEmailInfo().setSendingCount(notification.getEmailInfo().getSendingCount() + 1);
 					notificationRepository.save(notification);
 					validNotificationsList.add(notification);
-				}
 			});
 			
 			if(validNotificationsList.size() > 0) {
@@ -74,7 +78,12 @@ public class ScheduledTasks {
 	
 	@Scheduled(cron="${mailing.status.checkout.interval}")
 	public void changeStatus() {
-		List<Notification> notificationsList = notificationRepository.findByEmailStatus("NEW", "IN_PROCESS");
+		List<Notification> notificationsList = notificationRepository
+				.findByEmailStatus(
+						"NEW",
+						"IN_PROCESS",
+						LocalDateTime.now(),
+						PageRequest.of(0, mailingMessageQuantity * mailingThreadsAmount)
 		
 
 		notificationsList.forEach(notification -> {
