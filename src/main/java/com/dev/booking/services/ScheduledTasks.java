@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +50,11 @@ public class ScheduledTasks {
 		if(threadsAmount != 0) {
 			ExecutorService executorService = Executors.newFixedThreadPool(threadsAmount);
 			
-			List<Notification> validNotificationsList = new ArrayList<Notification>();
-			
-			notificationsList.forEach(notification -> {
-					notification.getEmailInfo().setSendingCount(notification.getEmailInfo().getSendingCount() + 1);
-					notificationRepository.save(notification);
-					validNotificationsList.add(notification);
-			});
+			List<Notification> validNotificationsList = notificationsList.stream().map(notification -> {
+				notification.getEmailInfo().setSendingCount(notification.getEmailInfo().getSendingCount() + 1);
+				notificationRepository.save(notification);
+				return notification;
+			}).collect(Collectors.toList());
 			
 			if(validNotificationsList.size() > 0) {
 				executorService.submit(() -> {
@@ -83,7 +84,7 @@ public class ScheduledTasks {
 						"NEW",
 						"IN_PROCESS",
 						LocalDateTime.now(),
-						PageRequest.of(0, mailingMessageQuantity * mailingThreadsAmount)
+						PageRequest.of(0, mailingMessageQuantity * mailingThreadsAmount));
 		
 
 		notificationsList.forEach(notification -> {
