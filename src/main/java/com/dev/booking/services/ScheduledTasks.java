@@ -52,9 +52,10 @@ public class ScheduledTasks {
 			
 			List<Notification> validNotificationsList = notificationsList.stream().map(notification -> {
 				notification.getEmailInfo().setSendingCount(notification.getEmailInfo().getSendingCount() + 1);
-				notificationRepository.save(notification);
+				notification.getEmailInfo().setEmailStatus(EmailStatus.IN_PROCESS);
 				return notification;
 			}).collect(Collectors.toList());
+			notificationRepository.saveAll(validNotificationsList);
 			
 			if(validNotificationsList.size() > 0) {
 				executorService.submit(() -> {
