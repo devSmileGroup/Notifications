@@ -3,18 +3,20 @@ package com.dev.booking.services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+
 import com.dev.booking.models.EmailStatus;
 import com.dev.booking.models.Notification;
 import com.dev.booking.models.User;
@@ -29,6 +31,8 @@ public class ScheduledTasks {
 	@Autowired
 	private NotificationRepository notificationRepository;
 
+	@Autowired
+	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 	@Value("${mailing.time.difference}")
 	private long mailingTimeDifference;
 	@Value("${mailing.message.quantity}")
@@ -40,9 +44,10 @@ public class ScheduledTasks {
 	 * Selects notifications from a database with status NEW
 	 * 
 	 * @throws InterruptedException
+	 * @throws ExecutionException
 	 */
 	@Scheduled(cron = "${mailing.interval}")
-	public void sendNotification() throws InterruptedException {
+	public void sendNotification() throws InterruptedException, ExecutionException {
 		List<Notification> notificationsList = notificationRepository.findByEmailStatusForProcessing(
 				LocalDateTime.now().minusMinutes(mailingTimeDifference),
 				PageRequest.of(0, mailingMessageQuantity * mailingThreadsAmount));
@@ -60,20 +65,29 @@ public class ScheduledTasks {
 				return notification;
 			}).collect(Collectors.toList());
 
-			if (validNotificationsList.size() > 0) {
-				ExecutorService executorService = Executors.newFixedThreadPool(threadsAmount);
-				List<Callable<Object>> tasks = new ArrayList<>();
-				// Creates task to process notifications for each batch
-				getBatches(validNotificationsList, mailingMessageQuantity).stream().forEach(batch -> {
-					logger.info("New batch with {} elements is going to be processed", batch.size());
-					tasks.add(() -> {
-						batch.forEach(this::processNotification);
-						return true;
-					});
-				});
-				executorService.invokeAll(tasks);
-				notificationRepository.saveAll(validNotificationsList);
-			}
+			threadPoolTaskExecutor.setCorePoolSize(threadsAmount);
+			List<Future> futureList = new ArrayList<>();
+			validNotificationsList.forEach(notification -> {
+				futureList.add(threadPoolTaskExecutor.submit(() -> {
+					processNotification(notification);
+				}));
+			});
+			
+			waitForCompletingTasks(futureList);
+			notificationRepository.saveAll(validNotificationsList);
+		}
+	}
+
+	/**
+	 * Waits given tasks to be completed
+	 * 
+	 * @param futureList
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	private void waitForCompletingTasks(List<Future> futureList) throws InterruptedException, ExecutionException {
+		for (Future future : futureList) {
+			future.get();
 		}
 	}
 
@@ -95,7 +109,9 @@ public class ScheduledTasks {
 
 	/**
 	 * Calculates number of threads required for processing list of notifications
-	 * @param notificationsListSize	size of list for processing
+	 * 
+	 * @param notificationsListSize
+	 *            size of list for processing
 	 * @return
 	 */
 	private int calcNumberOfThreads(int notificationsListSize) {
@@ -123,6 +139,7 @@ public class ScheduledTasks {
 	 * 
 	 * @param notification
 	 *            The notification to be processed
+	 * 
 	 */
 	private void processNotification(Notification notification) {
 		User testUser = new User("vladmartishevskii@gmail.com"); // def_x@ukr.net
