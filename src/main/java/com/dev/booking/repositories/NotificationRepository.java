@@ -11,6 +11,8 @@ import org.springframework.data.mongodb.repository.Query;
 import com.dev.booking.models.Notification;
 
 public interface NotificationRepository extends MongoRepository<Notification, ObjectId> {
-	@Query("{'$and':[{'$or':[{'email_info.status':?0 },{'email_info.status':?1 }]},{'modified_date':{$lt:?2}}]}")
-	public List<Notification> findByEmailStatus(String status1, String status2, LocalDateTime date, Pageable pageable);
+	@Query("{'email_info.sending_count':{$gt:?0}}")
+	public List<Notification> findBySendingCountGreaterThan(int sendingCount);
+	@Query("{'$or':[{'$and':[{'email_info.status':'IN_PROCESS' },{'modified_date':{$gt:?0}}]},{'email_info.status':'NEW'}]}")
+	public List<Notification> findByEmailStatusForProcessing(LocalDateTime date, Pageable pageable);
 }
