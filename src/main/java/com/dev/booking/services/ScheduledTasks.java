@@ -37,7 +37,7 @@ public class ScheduledTasks {
 	private int mailingThreadsAmount;
 
 	/**
-	 * Selects notifications from a database with status NEW
+	 * Selects notifications from a database with status NEW or IN_PROCESS not older than mailingTimeDifference
 	 * 
 	 * @throws InterruptedException
 	 */
