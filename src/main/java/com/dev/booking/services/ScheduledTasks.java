@@ -121,20 +121,6 @@ public class ScheduledTasks {
 	}
 
 	/**
-	 * 
-	 * @param source
-	 *            The source list to split on batches
-	 * @param size
-	 *            Size of batch
-	 * @return List of batches
-	 */
-	private List<List<Notification>> getBatches(List<Notification> source, int size) {
-		return IntStream.range(0, (source.size() + size - 1) / size)
-				.mapToObj(i -> source.subList(i * size, Math.min(source.size(), (i + 1) * size)))
-				.collect(Collectors.toList());
-	}
-
-	/**
 	 * Sends email about notification, changes status to PROCESSED if succeed
 	 * 
 	 * @param notification
