@@ -23,8 +23,8 @@ import com.dev.booking.models.User;
 import com.dev.booking.repositories.NotificationRepository;
 
 @Component
-public class ScheduledTasks {
-	private static final Logger logger = LogManager.getLogger(ScheduledTasks.class);
+public class NotificationHandler {
+	private static final Logger logger = LogManager.getLogger(NotificationHandler.class);
 
 	@Autowired
 	private EmailService emailService;
@@ -41,7 +41,8 @@ public class ScheduledTasks {
 	private int mailingThreadsAmount;
 
 	/**
-	 * Selects notifications from a database with status NEW or IN_PROCESS not older than mailingTimeDifference
+	 * Selects notifications from a database with status NEW or IN_PROCESS not older
+	 * than mailingTimeDifference
 	 * 
 	 * @throws InterruptedException
 	 * @throws ExecutionException
@@ -66,14 +67,14 @@ public class ScheduledTasks {
 			}).collect(Collectors.toList());
 
 			threadPoolTaskExecutor.setCorePoolSize(threadsAmount);
-			List<Future> futureList = new ArrayList<>();
+			List<Future> futureTasksList = new ArrayList<>();
 			validNotificationsList.forEach(notification -> {
-				futureList.add(threadPoolTaskExecutor.submit(() -> {
+				futureTasksList.add(threadPoolTaskExecutor.submit(() -> {
 					processNotification(notification);
 				}));
 			});
-			
-			waitForCompletingTasks(futureList);
+
+			waitForCompletingTasks(futureTasksList);
 			notificationRepository.saveAll(validNotificationsList);
 		}
 	}
@@ -100,8 +101,8 @@ public class ScheduledTasks {
 
 		notificationsList.forEach(notification -> {
 			notification.getEmailInfo().setEmailStatus(EmailStatus.FAILED);
-			logger.error(String.format("Status of notification with id: {} set to failed, sending count: {}",
-					notification.getId(), notification.getEmailInfo().getSendingCount()));
+			logger.error("Status of notification with id: {} was changed to FAILED, sending count: {}",
+					notification.getId(), notification.getEmailInfo().getSendingCount());
 
 		});
 		notificationRepository.saveAll(notificationsList);
@@ -131,10 +132,10 @@ public class ScheduledTasks {
 		User testUser = new User("vladmartishevskii@gmail.com"); // def_x@ukr.net
 		if (emailService.sendMessage(testUser.getEmail(), notification.getTitle(), notification.getText())) {
 			notification.getEmailInfo().setEmailStatus(EmailStatus.PROCESSED);
-			logger.info("Notification with id: {} succesfully sended to user with id: {} ThreadID: {}",
+			logger.info("Notification with id: {} was succesfully sent to user with id: {} ThreadID: {}",
 					notification.getId(), notification.getUserId(), Thread.currentThread().getId());
 		} else {
-			logger.error("Notification with id: {} not sended to user with id: {}", notification.getId(),
+			logger.error("Notification with id: {} wasn't sent to user with id: {}", notification.getId(),
 					notification.getUserId());
 		}
 	}
