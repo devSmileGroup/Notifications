@@ -25,7 +25,6 @@ import com.dev.booking.repositories.NotificationRepository;
 @Component
 public class NotificationHandler {
 	private static final Logger logger = LogManager.getLogger(NotificationHandler.class);
-
 	@Autowired
 	private EmailService emailService;
 	@Autowired
@@ -34,15 +33,21 @@ public class NotificationHandler {
 	@Autowired
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 	@Value("${mailing.time.difference}")
-	private long mailingTimeDifference;
+	private Integer mailingTimeDifference;
 	@Value("${mailing.message.quantity}")
-	private int mailingMessageQuantity;
+	private Integer mailingMessageQuantity;
 	@Value("${mailing.threads.amount}")
-	private int mailingThreadsAmount;
+	private Integer mailingThreadsAmount;
+	@Value("${mailing.time.offset}")
+	private Integer mailingTimeOffset;
+	@Value("${mailing.sendingCount.max}")
+	private Integer maxSendingCount;
 
 	/**
 	 * Selects notifications from a database with status NEW or IN_PROCESS not older
-	 * than mailingTimeDifference
+	 * than mailingTimeDifference with offset mailingTimeOffset (offset means, that
+	 * each batch has time for being processed and other thread will not take it
+	 * again). Submits tasks to TheadPoolTaskExecutor for sending emails.
 	 * 
 	 * @throws InterruptedException
 	 * @throws ExecutionException
@@ -51,6 +56,7 @@ public class NotificationHandler {
 	public void sendNotification() throws InterruptedException, ExecutionException {
 		List<Notification> notificationsList = notificationRepository.findByEmailStatusForProcessing(
 				LocalDateTime.now().minusMinutes(mailingTimeDifference),
+				LocalDateTime.now().minusMinutes(mailingTimeOffset),
 				PageRequest.of(0, mailingMessageQuantity * mailingThreadsAmount));
 		Integer threadsAmount = calcNumberOfThreads(notificationsList.size());
 
@@ -65,39 +71,45 @@ public class NotificationHandler {
 				notification.getEmailInfo().setEmailStatus(EmailStatus.IN_PROCESS);
 				return notification;
 			}).collect(Collectors.toList());
+			notificationRepository.saveAll(validNotificationsList);
 
 			threadPoolTaskExecutor.setCorePoolSize(threadsAmount);
-			List<Future> futureTasksList = new ArrayList<>();
-			validNotificationsList.forEach(notification -> {
-				futureTasksList.add(threadPoolTaskExecutor.submit(() -> {
-					processNotification(notification);
-				}));
+			getBatches(validNotificationsList, mailingMessageQuantity).forEach(batch -> {
+				threadPoolTaskExecutor.submit(() -> {
+					processBatchOfNotifications(batch);
+				});
 			});
 
-			waitForCompletingTasks(futureTasksList);
-			notificationRepository.saveAll(validNotificationsList);
 		}
 	}
 
 	/**
-	 * Waits given tasks to be completed
+	 * Sends emails for a batch of notifications
 	 * 
-	 * @param futureList
-	 * @throws InterruptedException
-	 * @throws ExecutionException
+	 * @param batch
 	 */
-	private void waitForCompletingTasks(List<Future> futureList) throws InterruptedException, ExecutionException {
-		for (Future future : futureList) {
-			future.get();
-		}
+	private void processBatchOfNotifications(List<Notification> batch) {
+		User testUser = new User("vladmartishevskii@gmail.com"); // def_x@ukr.net
+		batch.forEach(notification -> {
+			if (emailService.sendMessage(testUser.getEmail(), notification.getTitle(), notification.getText())) {
+				notification.getEmailInfo().setEmailStatus(EmailStatus.PROCESSED);
+				logger.info("Notification with id: {} was succesfully sent to user with id: {} ThreadID: {}",
+						notification.getId(), notification.getUserId(), Thread.currentThread().getId());
+			} else {
+				logger.error("Notification with id: {} wasn't sent to user with id: {}", notification.getId(),
+						notification.getUserId());
+			}
+		});
+		notificationRepository.saveAll(batch);
 	}
 
 	/**
-	 * Changes status of notifications to FAILED, if sending count > 2
+	 * Changes status of notifications to FAILED, if sending count > maxSendingCount
+	 * and status IN_PROCESS
 	 */
 	@Scheduled(cron = "${mailing.status.checkout.interval}")
 	public void changeStatus() {
-		List<Notification> notificationsList = notificationRepository.findBySendingCountGreaterThan(2);
+		List<Notification> notificationsList = notificationRepository.findBySendingCountGreaterThan(maxSendingCount);
 
 		notificationsList.forEach(notification -> {
 			notification.getEmailInfo().setEmailStatus(EmailStatus.FAILED);
@@ -106,6 +118,20 @@ public class NotificationHandler {
 
 		});
 		notificationRepository.saveAll(notificationsList);
+	}
+
+	/**
+	 * 
+	 * @param source
+	 *            The source list to split on batches
+	 * @param size
+	 *            Size of batch
+	 * @return List of batches
+	 */
+	private List<List<Notification>> getBatches(List<Notification> source, int size) {
+		return IntStream.range(0, (source.size() + size - 1) / size)
+				.mapToObj(i -> source.subList(i * size, Math.min(source.size(), (i + 1) * size)))
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -121,22 +147,4 @@ public class NotificationHandler {
 				: mailingThreadsAmount;
 	}
 
-	/**
-	 * Sends email about notification, changes status to PROCESSED if succeed
-	 * 
-	 * @param notification
-	 *            The notification to be processed
-	 * 
-	 */
-	private void processNotification(Notification notification) {
-		User testUser = new User("vladmartishevskii@gmail.com"); // def_x@ukr.net
-		if (emailService.sendMessage(testUser.getEmail(), notification.getTitle(), notification.getText())) {
-			notification.getEmailInfo().setEmailStatus(EmailStatus.PROCESSED);
-			logger.info("Notification with id: {} was succesfully sent to user with id: {} ThreadID: {}",
-					notification.getId(), notification.getUserId(), Thread.currentThread().getId());
-		} else {
-			logger.error("Notification with id: {} wasn't sent to user with id: {}", notification.getId(),
-					notification.getUserId());
-		}
-	}
 }

@@ -15,20 +15,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 public class Application {
 
-	@Value("${mailing.message.quantity}")
-	private int mailingMessageQuantity;
-	@Value("${mailing.threads.amount}")
-	private int mailingThreadsAmount;
-	
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
-	
+
 	@Bean
-    public ThreadPoolTaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setMaxPoolSize(mailingThreadsAmount);
-        executor.setQueueCapacity(mailingMessageQuantity*mailingThreadsAmount);
-        return executor;
-    }
+	public ThreadPoolTaskExecutor taskExecutor(
+			@Value("${threadPoolExecutor.maxPoolSize}") Integer mailingThreadsAmount) {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setMaxPoolSize(mailingThreadsAmount);
+		return executor;
+	}
 }

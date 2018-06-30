@@ -13,6 +13,8 @@ import com.dev.booking.models.Notification;
 public interface NotificationRepository extends MongoRepository<Notification, ObjectId> {
 	@Query("{'$and':[{'email_info.sending_count':{$gt:?0}},{'email_info.status':'IN_PROCESS'}]}")
 	public List<Notification> findBySendingCountGreaterThan(int sendingCount);
-	@Query("{'$or':[{'$and':[{'email_info.status':'IN_PROCESS' },{'modified_date':{$gt:?0}}]},{'email_info.status':'NEW'}]}")
-	public List<Notification> findByEmailStatusForProcessing(LocalDateTime date, Pageable pageable);
+
+	@Query("{'$or':[{'$and':[{'email_info.status':'IN_PROCESS' },{'modified_date':{$gt:?0}}, {'modified_date':{$lt:?1}}]},{'email_info.status':'NEW'}]}")
+	public List<Notification> findByEmailStatusForProcessing(LocalDateTime date, LocalDateTime offset,
+			Pageable pageable);
 }
